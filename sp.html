@@ -158,7 +158,9 @@
         showStatusMessage("กรุณาเลือกเลขที่แจ้งซ่อมและกรอกชื่อผู้รับเรื่อง", true);
         return;
       }
-
+      if (!dateTimeReceivedInput.value) {
+        dateTimeReceivedInput.value = formatDateTime(); // ✅ ป้องกันค่าหาย
+      }
       submitButton.disabled = true;
       submitButton.textContent = 'กำลังบันทึก...';
 
