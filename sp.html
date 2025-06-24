@@ -37,8 +37,8 @@
             </div>
 
             <div>
-                <label for="dateTimeReceivedInput" class="block text-sm font-medium text-gray-700">วันที่ เวลารับแจ้งซ่อม</label>
-                <input type="text" id="dateTimeReceivedInput" name="dateTimeReceived" class="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md shadow-sm sm:text-sm" placeholder="จะแสดงเมื่อเลือกเลขที่แจ้งซ่อม">
+                <label for="dateTimeReceived" class="block text-sm font-medium text-gray-700">วันที่ เวลารับแจ้งซ่อม</label>
+                <input type="text" id="dateTimeReceived" name="dateTimeReceived" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm" placeholder="จะแสดงเมื่อเลือกเลขที่แจ้งซ่อม">
             </div>
             
             <div>
@@ -100,7 +100,26 @@
                 errorDiv.classList.remove('hidden');
             }
         }
+        // Function to set default values on page load
+        function initializeForm() {
+            // --- UPDATED: Set Repair ID Display ---
+            const now = new Date(); // Gets local time (UTC+7 for the user)
+            const year = now.getFullYear();
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            // Set the display value for the user with 'XXX' as a placeholder
+            document.getElementById('repair_id').value = `MN-${year}${month}-XXX`;
 
+            // --- Set Timestamp ---
+            const localDay = String(now.getDate()).padStart(2, '0');
+            const localMonth = String(now.getMonth() + 1).padStart(2, '0');
+            const localYear = now.getFullYear();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            
+            const formattedTimestamp = `${localDay}/${localMonth}/${localYear} :: ${hours}:${minutes}:${seconds}`;
+            document.getElementById('request_time').value = formattedTimestamp;
+        }
         function populateDropdown() {
             const unassignedJobs = repairData.filter(record => !record.handlerName && record.repairId);
             const sortedData = unassignedJobs.sort((a, b) => {
@@ -121,26 +140,6 @@
             });
         }
 
-                // Function to set default values on page load
-        function initializeForm() {
-            // --- UPDATED: Set Repair ID Display ---
-            const now = new Date(); // Gets local time (UTC+7 for the user)
-            const year = now.getFullYear();
-            const month = (now.getMonth() + 1).toString().padStart(2, '0');
-            // Set the display value for the user with 'XXX' as a placeholder
-            document.getElementById('repair_id').value = `MN-${year}${month}-XXX`;
-
-            // --- Set Timestamp ---
-            const localDay = String(now.getDate()).padStart(2, '0');
-            const localMonth = String(now.getMonth() + 1).padStart(2, '0');
-            const localYear = now.getFullYear();
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            
-            const formattedTimestamp = `${localDay}/${localMonth}/${localYear} :: ${hours}:${minutes}:${seconds}`;
-            document.getElementById('request_time').value = formattedTimestamp;
-        }
 
         function showStatusMessage(message, isError = false) {
             submitStatus.textContent = message;
@@ -161,7 +160,7 @@
             submitButton.textContent = 'กำลังบันทึก...';
             const payload = {
                 repairId: repairIdSelect.value,
-                dateTimeReceived: dateTimeReceivedInput.value,
+                dateTimeReceived: dateTimeReceived.value,
                 handlerName: handlerNameInput.value,
                 status: statusSelect.value,
                 form_name: "รับเรื่องแจ้งซ่อม"
