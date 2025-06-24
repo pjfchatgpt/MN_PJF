@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ฟอร์มแจ้งซ่อมอุปกรณ์</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for Thai characters -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Apply Sarabun font to the entire page */
+        body {
+            font-family: 'Sarabun', sans-serif;
+        }
+        /* Custom styles for the notification popup */
+        #notification {
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        /* Styles for Autocomplete Dropdown */
+        .autocomplete-items {
+            position: absolute;
+            border: 1px solid #d4d4d4;
+            border-bottom: none;
+            border-top: none;
+            z-index: 99;
+            top: 100%;
+            left: 0;
+            right: 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .autocomplete-items div {
+            padding: 10px;
+            cursor: pointer;
+            background-color: #fff; 
+            border-bottom: 1px solid #d4d4d4; 
+        }
+        .autocomplete-items div:hover {
+            background-color: #e9e9e9; 
+        }
+        .autocomplete-active {
+            background-color: DodgerBlue !important; 
+            color: #ffffff; 
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+    <div class="w-full max-w-2xl mx-auto p-4">
+        <form id="repairForm" class="bg-white p-8 rounded-xl shadow-lg space-y-6">
+            <h1 class="text-2xl font-bold text-center text-gray-800">ฟอร์มแจ้งซ่อมอุปกรณ์</h1>
+
+            <!-- Row 1: Repair ID and Category -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="repair_id" class="block text-sm font-medium text-gray-700 mb-1">เลขที่แจ้งซ่อม</label>
+                    <input type="text" id="repair_id" name="repair_id" class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" readonly>
+                </div>
+                <div>
+                    <label for="category" class="block text-sm font-medium text-gray-700 mb-1">หมวด</label>
+                    <select id="category" name="category" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required>
+                        <option value="">-- เลือกหมวดหมู่ --</option>
+                        <option value="ซ่อมแซมระหว่างเครื่องจักรหยุดขณะทำงาน (BK)">ซ่อมแซมระหว่างเครื่องจักรหยุดขณะทำงาน (BK)</option>
+                        <option value="ไฟฟ้า">ไฟฟ้า</option>
+                        <option value="ประปา">ประปา</option>
+                        <option value="อาคารสถานที่">อาคารสถานที่</option>
+                        <option value="IT">IT/คอมพิวเตอร์</option>
+                        <option value="อื่นๆ">อื่นๆ</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Row 2: Machine ID (Autocomplete) -->
+            <div class="relative">
+                <label for="machine_id_input" class="block text-sm font-medium text-gray-700 mb-1">รหัสเครื่องจักร / ชื่อเครื่องจักร</label>
+                <input id="machine_id_input" type="text" name="machine_id" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="พิมพ์เพื่อค้นหาหรือกรอกข้อมูล..." required>
+                <div id="autocomplete-list" class="autocomplete-items"></div>
+            </div>
+
+            <!-- Row 3: Details -->
+            <div>
+                <label for="details" class="block text-sm font-medium text-gray-700 mb-1">รายการแจ้งซ่อม / สาเหตุการแจ้งซ่อม</label>
+                <textarea id="details" name="details" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="อธิบายอาการเสียหรือสาเหตุที่ต้องการแจ้งซ่อม" required></textarea>
+            </div>
+            
+            <!-- Row 4: Request Time and Requester Name -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="request_time" class="block text-sm font-medium text-gray-700 mb-1">เวลาแจ้งซ่อม</label>
+                    <input type="text" id="request_time" name="request_time" class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" readonly>
+                </div>
+                <div>
+                     <label for="requester_name" class="block text-sm font-medium text-gray-700 mb-1">ชื่อผู้แจ้งซ่อม</label>
+                    <input type="text" id="requester_name" name="requester_name" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="กรอกชื่อ-นามสกุล" required>
+                </div>
+            </div>
+            
+             <!-- Row 5: Department and hidden Status -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="department" class="block text-sm font-medium text-gray-700 mb-1">แผนก</label>
+                    <select id="department" name="department" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required>
+                         <option value="">-- เลือกแผนก --</option>
+                        <option value="ฝ่ายผลิต">ฝ่ายผลิต</option>
+                        <option value="ซ่อมบำรุง">ซ่อมบำรุง</option>
+                        <option value="คลังสินค้า">คลังสินค้า</option>
+                        <option value="บุคคล">บุคคล</option>
+                        <option value="สำนักงาน">สำนักงาน</option>
+                        <option value="อื่นๆ">อื่นๆ</option>
+                    </select>
+                </div>
+                 <!-- Hidden Status Field -->
+                 <input type="hidden" id="status" name="status" value="แจ้งซ่อม">
+            </div>
+
+            <!-- Submit Button -->
+            <div class="pt-4">
+                <button type="submit" id="submitButton" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-300">
+                    ส่งข้อมูล
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Notification Popup -->
+    <div id="notification" class="fixed top-5 right-5 p-4 rounded-md text-white shadow-lg opacity-0 transform translate-y-2 pointer-events-none">
+        <p id="notification-message"></p>
+    </div>
+
+    <script>
+        const machineList = [
+            "M-B-0304-หม้อต้มยาน้ำ หม้อต้มใหญ่", "M-B-0303-หม้อต้มยาน้ำ", "M-B-0302-หม้อต้มยาน้ำ", "M-B-0301-หม้อต้มยาน้ำ",
+            "M-B-0117-ถังผสมยาน้ำ ขนาด 2000 ลิตร", "M-B-0113-ถังผสมยาน้ำ ขนาด 2000 ลิตร", "M-B-0112-ถังผสมยาน้ำ ขนาด 3000 ลิตร",
+            "M-B-0118-ถังผสมยาน้ำ ขนาด 3000 ลิตร", "M-B-0114-ถังผสมยาน้ำ ขนาด 1000 ลิตร", "M-S-0103-ปั๊มลม ปั่นยาน้ำ เหลือง",
+            "M-S-0608-เครื่องดูดอากาศโรงปั่นยาน้ำ", "M-B-0121-ถังผสมยาน้ำ ขนาด 4000 ลิตร", "M-B-0115-ถังผสมยาน้ำ ขนาด 1000 ลิตร",
+            "M-B-0116-ถังผสมยาน้ำ ขนาด 1000 ลิตร", "M-S-0203-ปั๊มดูดสารเคมี", "M-S-0204-ปั๊มดูดสารเคมี", "M-S-0502-ลิฟท์ ปั่นยาน้ำ",
+            "M-B-0101-ถังผสมยาน้ำ ขนาด 6000 ลิตร", "M-B-0102-ถังผสมยาน้ำ ขนาด 6000 ลิตร", "M-B-0103-ถังผสมยาน้ำ ขนาด 6000 ลิตร",
+            "M-B-0104-ถังผสมยาน้ำ ขนาด 6000 ลิตร", "M-B-0105-ถังผสมยาน้ำ ขนาด 6000 ลิตร", "M-B-0106-ถังผสมยาน้ำ ขนาด 6000 ลิตร",
+            "M-B-0107-ถังผสมยาน้ำ ขนาด 5000 ลิตร", "M-B-0109-ถังผสมยาน้ำ ขนาด 3000 ลิตร", "M-B-0110-ถังผสมยาน้ำ ขนาด 3000 ลิตร",
+            "M-B-0111-ถังผสมยาน้ำ ขนาด 3000 ลิตร", "M-S-0201-ปั๊มดูดสารเคมี", "M-B-0120-ถังผสมยาน้ำ ขนาด 8000 ลิตร",
+            "M-B-0119-ถังผสมยาน้ำ ขนาด 8000 ลิตร", "M-S-0202-ปั๊มดูดสารเคมี", "M-B-0201-ถังมิพา 1", "M-B-0202-ถังมิพา 2",
+            "M-B-0203-ถังมิพา 3", "M-B-0204-ถังกรองสารเคมี", "M-B-0205-ถังกรองสารเคมี", "M-S-0301-มอเตอร์ปั๊มน้ำหล่อน้ำเย็น",
+            "M-S-0302-มอเตอร์ปั๊มน้ำหล่อน้ำเย็น", "M-S-0303-มอเตอร์ปั๊มน้ำหล่อน้ำเย็น", "M-S-0304-มอเตอร์ปั๊มน้ำหล่อน้ำเย็น",
+            "M-S-0503-สวิททซ์ลูกลอยเช็คระดับน้ำ", "M-B-0122-ถังผสมยาน้ำ ขนาด 600 ลิตร", "M-F-0401-เครี่องบรรจุยาเม็ด 1 ไดฟูเบนซูรอน",
+            "M-F-0404-เครื่องตอกยาเม็ด", "M-B-0501-เครื่องแร่ง", "M-B-0502-เครื่องผสมเปียก ยาเม็ด", "M-B-0503-เครื่องผสมแห้ง ยาเม็ด",
+            "M-B-0505-เครื่องแร่งแยกขนาด", "M-F-0302-เครื่องบรรจุยาทรายแนวตั้ง (ยาทราย อ.ย)", "M-S-0701-เครื่องทดลองการร่อน ยาเม็ด",
+            "M-F-0303-เครื่องบรรจุยาทรายแนวตั้ง (ยาทราย อ.ย)", "M-F-0304-เครื่องบรรจุยาทรายแนวตั้ง (ยาทราย อ.ย)",
+            "M-S-0702-เครื่องทดลองการร่อน ยาเม็ด", "M-F-0209-เครื่องบรรจุยาทรายซองพลาสติก 50 กรัม", "M-F-0208-เครื่องบรรจุยาทรายซองพลาสติก 50 กรัม",
+            "M-B-0403-โม่ปั่นยาทราย อ.ย", "M-B-0406-ชุดกระพ้อ อ.ย", "M-F-0206-เครื่องบรรจุยาทราย (สีเขียว) 25 กิโล",
+            "M-F-0402-เครื่องบรรจุยาเม็ด 2 เทมีฟอส 10 %", "M-F-0403-เครื่องบรรจุยาเม็ด 3 เทมีฟอส 1 %", "M-S-0605-เครื่องดูดความชื้น",
+            "M-B-0504-เครื่องผสมแห้ง ยาผง", "M-B-0304-ตู้อบยา อย.", "M-S-0602-เครื่องดดูดอากาศ โรง อย.",
+            "M-S-0606-เครื่องดดูดอากาศ Wet scrubbers และ Cyclone collectors", "M-S-0607-เครื่องดูดความชื้น (ตัวเล็ก)",
+            "M-S-0104-ปั๊มลม โรง อย.", "M-P-0204-เครื่องตอกฝา", "M-P-0205-เครื่องตอกฝา", "M-P-0206-เครื่องตอกฝา", "M-P-0303-เครื่องเป่าฟิล์ม",
+            "M-P-0304-เครื่องเป่าฟิล์ม", "M-P-0305-เครื่องเป่าฟิล์ม", "M-P-0306-เครื่องเป่าฟิล์ม",
+            "M-F-0101-เครื่อง AUTO บรรจุยาน้ำ ขนาด 4-5 ลิตร", "M-F-0102-เครื่อง AUTO บรรจุยาน้ำ ขนาด 500ซีซี -1 ลิตร",
+            "M-F-0103-เครื่องบรรจุยาน้ำ ขนาด 4-5 ลิตร", "M-F-0104-เครื่องบรรจุยาน้ำ ขนาด 4-5 ลิตร",
+            "M-F-0105-เครื่องบรรจุยาน้ำ ขนาด 0.5-1 ลิตร (โหลแก้ว)", "M-F-0106-เครื่องบรรจุยาน้ำ ขนาด 0.5-1 ลิตร (โหลแก้ว)",
+            "M-F-0107-เครื่องบรรจุยาน้ำ ขนาด 0.5-1 ลิตร (โหลแก้ว)", "M-F-0108-เครื่องบรรจุยาน้ำ ขนาด 0.5-1 ลิตร (โหลแก้ว)",
+            "M-F-0110-เครื่องบรรจุยาน้ำ 2 หัว ขนาด 0.5-1 ลิตร", "M-F-0111-เครื่องบรรจุยาน้ำ 2 หัว ขนาด 0.5-1 ลิตร",
+            "M-F-0112-เครื่องบรรจุยาน้ำ 2 หัว ขนาด 0.5-1 ลิตร", "M-F-0201-เครื่องบรรจุผงกึ่งอัตโนมัติ 4 หัว",
+            "M-F-0202-เครื่องบรรจุผงกึ่งอัตโนมัติ", "M-F-0203-เครื่องบรรจุผงกึ่งอัตโนมัติ", "M-F-0301-เครื่องบรรจุยาฝุ่นออโต้",
+            "M-P-0101-เครื่องซีลปิดปิดฝาฟอยส์", "M-P-0102-เครื่องซีลปิดฝาฟอยส์", "M-P-0103-เครื่องซีลปิดฝาฟอยส์",
+            "M-P-0104-เครื่องซีลปิดฝาฟอยส์", "M-P-0308-เครื่องเปาฟิล์ม", "M-P-0401-เครื่องปิดปากลัง", "M-P-0402-เครื่องปิดปากลัง",
+            "M-P-0403-เครื่องปิดปากลัง", "M-P-0404-เครื่องปิดปากลัง", "M-P-0405-เครื่องปิดปากลัง", "M-P-0406-เครื่องปิดปากลัง",
+            "M-P-0407-เครื่องปิดปากลัง", "M-P-0701-เครื่องรัดลัง", "M-P-0702-เครื่องรัดลัง",
+            "M-P-0601-เครื่องสายพานลำเลียงยาเม็ด-ยาผง", "M-P-0602-เครื่องสายพานลำเลียงยาเม็ด-ยาผง", "M-P-0603-เครื่องสายพานลำเลียงยาเม็ด-ยาผง",
+            "M-P-0501-เครื่องยิงล๊อท HITACHI", "M-P-0502-เครื่องยิงล๊อท (ลัง)", "M-P-0503-เครื่องยิงล๊อท (ลัง)",
+            "M-S-0101-ปั๊มลม บรรจุยาน้ำ", "M-P-0505-เครื่องติดฉลากสติกเกอร์", "M-P-0506-เครื่องติดฉลากสติกเกอร์ ออโต้ 1 ลิตร",
+            "M-P-0507-เครื่องซีลฟอยส์ปากขวด ออโต้ 1 ลิตร", "M-P-0508-เครื่องไขขันฝา ออโต้ 1 ลิตร", "M-P-0509-เครื่องซีลฟอยส์ปากขวด",
+            "M-P-0510-เครื่องซีลฟอยส์ปากขวด", "M-S-0205-ปั๊มดูดสารเคมี ออโต้ 1 ลิตร", "M-S-0603-เครื่องดูดอากาศโรงยาเม็ด-ยาผง",
+            "M-S-0206-ปั๊มดูดสารเคมี", "M-S-0207-ปั๊มดูดสารเคมี", "M-S-0208-ปั๊มดูดสารเคมี", "M-P-0801-เครื่องซีลแบบเท้าเหยียบ",
+            "M-P-0802-เครื่องซีลแบบเท้าเหยียบ", "M-P-0803-เครื่องซีลแบบเท้าเหยียบ", "M-P-0804-เครื่องซีลแบบเท้าเหยียบ",
+            "M-P-0805-เครื่องซีลแบบเท้าเหยียบ", "M-P-0806-เครื่องซีลแบบเท้าเหยียบ", "M-P-0807-เครื่องซีลแบบเท้าเหยียบ",
+            "M-P-0808-เครื่องซีลแบบเท้าเหยียบ", "M-P-0207-เครื่องจั๊มฝาAUTO", "M-P-0604-เครื่องสายพานลำเลียงยาเม็ด-ยาผง",
+            "M-P-0605-เครื่องสายพานลำเลียงปุ๋ย บรรจุยาน้ำ", "M-S-0701-รอกไฟฟ้าดึงยา (สีส้ม) ไกลโฟเซต ขนาด 1 ton",
+            "M-S-0702-รอกดึงยา (รอกโซ่มือสาว)", "M-S-0703-รอกไฟฟ้าดึงยา (สีเขียว) ยาเม็ดยาผง ขนาด 2 ton",
+            "M-S-0704-รอกดึงยา (รอกโซ่มือสาว)", "M-S-0705-รอกดึงยา ยาเม็ด-ยาผง (รอกโซ่มือสาว)",
+            "M-S-0706-รอกดึงยา สีส้ม ยาเม็ด-ยาผง (รอกโซ่มือสาว)", "M-C-0001-เครื่องบดปุ๋ย", "M-C-0002-เครื่องผสมปุ๋ย",
+            "M-B-0407-เครื่องร่อนยาทราย สีส้ม คาร์แทป์", "M-B-0401-โม่ปั่นยาทราย 5 ตัน", "M-B-0402-โม่ปั่นยาทราย 7 ตัน",
+            "M-B-0404-ชุดกระพ้อขึ้นยา", "M-B-0405-ชุดกระพ้อถ่ายยา", "M-B-0408-เครื่องร่อนยาทราย สีม่วงโปรโตคอล",
+            "M-P-0901-จักรเย็บกระสอบ คาร์แทป", "M-F-0205-เครื่องชั่งน้ำหนักยาทรายดิจิตอล", "M-C-0003-เครื่องร่อนปุ๋ย สีขาว",
+            "M-S-0209-ปั๊มดูดสารเคมี คาร์แทป", "M-P-0012-เครื่องปั๊มฉลาก", "M-P-0013-เครื่องปั๊มฉลาก", "M-P-0015-เครื่องปั๊มฉลาก",
+            "M-F-0204-เครื่องบรรจุผงกึ่งอัตโนมัติ", "M-P-0212-เครื่องจั๊มฝา มือ", "M-P-0213-เครื่องจั๊มฝา มือ",
+            "M-P-0209-เครื่องจั๊มฝา มือ", "M-S-0306-เครื่อง Cooling Tower", "M-S-0305-มอเตอร์ปั๊มน้ำ Cooling Tower",
+            "M-S-0210-ปั๊มดูดสารเคมี ปั่นยาน้ำ", "M-S-0601-เครื่องดูดอากาศโรงไกลโฟเซต-บรรจุยาน้ำ",
+            "M-S-0601-1-เครื่องดูดอากาศโรงไกลโฟเซต-บรรจุยาน้ำ", "M-F-0207-เครื่องบรรจุยาน้ำซองพลาสติก 50 กรัม ยาทราย อย",
+            "M-B-0410-ไซโล ถ่ายยา", "M-B-0411-ไซโล ขึ้นยา", "M-S-0501-สวิททซ์ลูกลอยเช็คระดับน้ำ", "M-P-0902-จักรกระสอบ บรรจุยาน้ำ",
+            "M-S-0607-เครื่องดูดอากาศห้อง LAB", "M-C-0004-เครื่องป้อนปุ๋ย", "M-S-0429-ลูกตุ้มสแตนเลส 13MO731",
+            "M-S-0430-ชุดลูกตุ้มสแตนเลส", "M-S-0431-ชุดลูกตุ้มเหล็ก", "M-S-0428-ลูกตุ้มสแตนเลส 13MO730",
+            "F-001-รถโฟล์คลิฟท์ TOYOTA", "F-002-รถโฟล์คลิฟท์ TOYOTA", "F-003-รถโฟล์คลิฟท์ TOYOTA", "F-004-รถโฟล์คลิฟท์ TOYOTA",
+            "F-005-รถโฟล์คลิฟท์", "F-006-รถโฟล์คลิฟท์ สีขาว", "M-S-0401-เครื่องชั่ง DSC-050", "M-S-0432-เครื่องชั่ง DSC- 058",
+            "M-S-0427-เครื่องชั่ง DSC-019", "M-S-0412-ลูกตุ้มสแตนเลส", "M-S-0413-เครื่องชั่ง DSC-047", "M-S-0438-เครื่องชั่ง DSC-046",
+            "M-S-0416-เครื่องชั่ง DSC-043", "M-S-0417-เครื่องชั่ง DSC-056", "M-S-0422-เครื่องชั่ง DSC-037",
+            "M-S-0423-เครื่องชั่ง DSC-038", "M-S-0424-เครื่องชั่ง DSC-042", "M-S-0425-เครื่องชั่ง DSC-055",
+            "M-S-0406-เครื่องชั่ง DSC-034", "M-S-0407-เครื่องชั่ง DSC-051", "M-S-0409-เครื่องชั่ง DSC-053",
+            "M-S-0404-เครื่องชั่ง DSC-033", "M-S-0405-เครื่องชั่ง DSC-052", "M-S-0436-เครื่องชั่ง DSC- 062",
+            "M-S-0437-เครื่องชั่ง DSC- 063", "M-S-0411-เครื่องชั่ง DSC-045", "M-S-0434-เครื่องชั่ง DSC- 060",
+            "M-S-0439-เครื่องชั่ง DSC- 065", "M-S-0440-เครื่องชั่ง DSC- 066", "M-S-0444-เครื่องชั่ง DSC-070",
+            "M-S-0442-เครื่องชั่ง DSC-068", "M-S-0441-เครื่องชั่ง DSC-067", "M-S-0402-เครื่องชั่ง DSC-027",
+            "M-S-0403-เครื่องชั่ง DSC-026", "M-S-0408-เครื่องชั่ง DSC-032", "H-002-รถแฮนลิฟท์", "H-003-รถแฮนลิฟท์",
+            "H-004-รถแฮนลิฟท์", "H-005-รถแฮนลิฟท์", "H-006-รถแฮนด์ลิฟท์ สีเหลือง", "H-007-รถแฮนด์ลิฟท์ สีแดงทรงแคบ",
+            "H-008-รถแฮนลิฟท์", "H-009-รถแฮนลิฟท์", "H-010-รถแฮนลิฟท์", "H-011-รถแฮนลิฟท์", "H-012-รถแฮนลิฟท์",
+            "H-013-รถแฮนลิฟท์", "H-014-รถแฮนลิฟท์", "H-015-รถแฮนลิฟท์", "H-016-รถแฮนลิฟท์", "H-017-รถแฮนลิฟท์ สีน้ำเงิน",
+            "H-018-รถแฮนลิฟท์", "H-001-รถแฮนลิฟท์", "T-001-รถยกน้ำมัน", "T-002-รถยกน้ำมัน", "T-003-รถยกน้ำมัน",
+            "T-004-รถยกน้ำมัน", "T-005-รถยกน้ำมัน", "T-006-รถยกน้ำมัน", "T-007-รถยกน้ำมัน", "T-008-รถยกน้ำมัน",
+            "M-P-0202-เครื่องตอกฝา", "M-S-0445-ลูกตุ้มสแตนเลส", "M-B-0305-หม้อต้มยาน้ำ  ( ใหม่ )", "PROJECT", "อื่นๆ",
+            "อุปกรณ์ทั่วไป เครื่องมือ และอะไหล่สำรองต่างๆ"
+        ];
+
+        // Function to set default values on page load
+        function initializeForm() {
+            // --- UPDATED: Set Repair ID Display ---
+            const now = new Date(); // Gets local time (UTC+7 for the user)
+            const year = now.getFullYear();
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            // Set the display value for the user with 'XXX' as a placeholder
+            document.getElementById('repair_id').value = `MN-${year}${month}-XXX`;
+
+            // --- Set Timestamp ---
+            const localDay = String(now.getDate()).padStart(2, '0');
+            const localMonth = String(now.getMonth() + 1).padStart(2, '0');
+            const localYear = now.getFullYear();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            
+            const formattedTimestamp = `${localDay}/${localMonth}/${localYear} :: ${hours}:${minutes}:${seconds}`;
+            document.getElementById('request_time').value = formattedTimestamp;
+        }
+        
+        // Function to show notification
+        function showNotification(message, isSuccess) {
+            const notification = document.getElementById('notification');
+            const notificationMessage = document.getElementById('notification-message');
+            
+            notificationMessage.textContent = message;
+            notification.className = `fixed top-5 right-5 p-4 rounded-md text-white shadow-lg pointer-events-auto ${isSuccess ? 'bg-green-500' : 'bg-red-500'}`;
+            
+            notification.classList.remove('opacity-0', 'translate-y-2');
+            
+            setTimeout(() => {
+                notification.classList.add('opacity-0', 'translate-y-2');
+                notification.classList.add('pointer-events-none');
+            }, 4000);
+        }
+
+        // Handle form submission
+        const form = document.getElementById('repairForm');
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const submitButton = document.getElementById('submitButton');
+            const webhookUrl = 'https://856d-61-7-138-3.ngrok-free.app/webhook-test/PJF_MN';
+            
+            submitButton.disabled = true;
+            submitButton.textContent = 'กำลังส่งข้อมูล...';
+            
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+
+            // --- UPDATED: Correct the repair_id value before sending ---
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            data.repair_id = `MN-${year}${month}`;
+            // --- END UPDATE ---
+
+            fetch(webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (response.ok) {
+                    const contentType = response.headers.get("content-type");
+                    return (contentType && contentType.includes("application/json")) ? response.json() : response.text();
+                }
+                 // If response is not ok, create a more detailed error to be caught
+                 return response.text().then(text => {
+                    throw new Error(`Network response was not ok. Status: ${response.status}. Body: ${text}`);
+                });
+            })
+            .then(data => {
+                console.log('Success:', data);
+                showNotification('ส่งข้อมูลแจ้งซ่อมสำเร็จ!', true);
+                form.reset();
+                initializeForm(); // Reset form for the next entry
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                 // --- UPDATED ERROR MESSAGE ---
+                showNotification('เกิดข้อผิดพลาด! ไม่สามารถส่งข้อมูลได้ (โปรดตรวจสอบว่า Webhook URL ทำงานอยู่)', false);
+            })
+            .finally(() => {
+                submitButton.disabled = false;
+                submitButton.textContent = 'ส่งข้อมูล';
+            });
+        });
+        
+        // Autocomplete function for machine ID
+        function setupAutocomplete(inp, arr) {
+            let currentFocus;
+            
+            inp.addEventListener("input", function(e) {
+                let a, b, i, val = this.value;
+                closeAllLists();
+                if (!val) { return false; }
+                currentFocus = -1;
+                
+                a = document.createElement("DIV");
+                a.setAttribute("id", this.id + "autocomplete-list");
+                a.setAttribute("class", "autocomplete-items");
+                this.parentNode.appendChild(a);
+
+                for (i = 0; i < arr.length; i++) {
+                    if (arr[i].toUpperCase().includes(val.toUpperCase())) {
+                        b = document.createElement("DIV");
+                        b.innerHTML = arr[i].replace(new RegExp(val, "gi"), "<strong>$&</strong>");
+                        b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+                        b.addEventListener("click", function(e) {
+                            inp.value = this.getElementsByTagName("input")[0].value;
+                            closeAllLists();
+                        });
+                        a.appendChild(b);
+                    }
+                }
+            });
+
+            function closeAllLists(elmnt) {
+                var x = document.getElementsByClassName("autocomplete-items");
+                for (var i = 0; i < x.length; i++) {
+                    if (elmnt != x[i] && elmnt != inp) {
+                        x[i].parentNode.removeChild(x[i]);
+                    }
+                }
+            }
+            document.addEventListener("click", function (e) {
+                closeAllLists(e.target);
+            });
+        }
+        
+        // Initialize the form and autocomplete when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeForm();
+            setupAutocomplete(document.getElementById("machine_id_input"), machineList);
+        });
+
+    </script>
+
+</body>
+</html>
