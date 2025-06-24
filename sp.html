@@ -1,195 +1,196 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>รับเรื่องแจ้งซ่อม</title>
-    <!-- โหลด Tailwind CSS เพื่อความสวยงาม -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- โหลดฟอนต์ภาษาไทย -->
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Sarabun', sans-serif;
-        }
-        .status-message {
-            transition: opacity 0.5s ease-in-out;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>รับเรื่องแจ้งซ่อม</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- ฟอนต์ Sarabun -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet" />
+
+  <style>
+    body {
+      font-family: 'Sarabun', sans-serif;
+    }
+    .status-message {
+      transition: opacity 0.5s ease-in-out;
+    }
+  </style>
 </head>
+
 <body class="bg-gray-100 flex items-center justify-center min-h-screen py-12">
 
-    <div class="w-full max-w-lg p-8 space-y-6 bg-white rounded-xl shadow-lg">
-        <h1 class="text-2xl font-bold text-center text-gray-800">รับเรื่องแจ้งซ่อม</h1>
+  <div class="w-full max-w-lg p-8 space-y-6 bg-white rounded-xl shadow-lg">
+    <h1 class="text-2xl font-bold text-center text-gray-800">รับเรื่องแจ้งซ่อม</h1>
 
-        <div id="loading" class="text-center text-gray-500">
-            <p>กำลังโหลดข้อมูลจาก Google Sheet...</p>
-        </div>
-
-        <form id="repairForm" class="space-y-4 hidden">
-            <div>
-                <label for="repairIdSelect" class="block text-sm font-medium text-gray-700">เลขที่แจ้งซ่อม (ที่ยังไม่มีผู้รับเรื่อง)</label>
-                <select id="repairIdSelect" name="repairId" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
-                    <option value="">-- กรุณาเลือกเลขที่แจ้งซ่อม --</option>
-                </select>
-            </div>
-
-            <div>
-                <label for="dateTimeReceived" class="block text-sm font-medium text-gray-700">วันที่ เวลารับแจ้งซ่อม</label>
-                <input type="text" id="dateTimeReceived" name="dateTimeReceived" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm" placeholder="จะแสดงเมื่อเลือกเลขที่แจ้งซ่อม">
-            </div>
-            
-            <div>
-                <label for="handlerNameInput" class="block text-sm font-medium text-gray-700">ชื่อผู้รับแจ้งซ่อม</label>
-                <input type="text" id="handlerNameInput" name="handlerName" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="กรอกชื่อผู้รับเรื่อง" required>
-            </div>
-            
-            <div>
-                <label for="statusSelect" class="block text-sm font-medium text-gray-700">สถานะ</label>
-                <select id="statusSelect" name="status" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                    <option>แจ้งซ่อม</option>
-                    <option selected>กำลังดำเนินงาน</option>
-                </select>
-            </div>
-
-            <button type="submit" id="submitButton" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-300">
-                บันทึกข้อมูล
-            </button>
-        </form>
-         <div id="error" class="text-center text-red-500 font-semibold hidden"></div>
-         <div id="submitStatus" class="text-center font-medium status-message opacity-0"></div>
+    <div id="loading" class="text-center text-gray-500">
+      <p>กำลังโหลดข้อมูลจาก Google Sheet...</p>
     </div>
 
-    <script>
-        // อัปเดต SCRIPT_URL เป็นเวอร์ชันที่คุณให้มา
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwpOVZ_qNP9y2Rk5_Jl2xdsLjZVZ2QmEL9bThHLESaMjD9aXMMXvybpCf2qNcARnFQDUA/exec";
-        const N8N_WEBHOOK_URL = "https://856d-61-7-138-3.ngrok-free.app/webhook-test/PJF_MN";
-        
-        const loadingDiv = document.getElementById('loading');
-        const errorDiv = document.getElementById('error');
-        const repairForm = document.getElementById('repairForm');
-        const repairIdSelect = document.getElementById('repairIdSelect');
-        const handlerNameInput = document.getElementById('handlerNameInput');
-        const statusSelect = document.getElementById('statusSelect');
-        const dateTimeReceivedInput = document.getElementById('dateTimeReceivedInput');
-        const submitButton = document.getElementById('submitButton');
-        const submitStatus = document.getElementById('submitStatus');
+    <form id="repairForm" class="space-y-4 hidden">
+      <div>
+        <label for="repairIdSelect" class="block text-sm font-medium text-gray-700">เลขที่แจ้งซ่อม (ที่ยังไม่มีผู้รับเรื่อง)</label>
+        <select id="repairIdSelect" name="repairId" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+          <option value="">-- กรุณาเลือกเลขที่แจ้งซ่อม --</option>
+        </select>
+      </div>
 
-        let repairData = [];
+      <div>
+        <label for="dateTimeReceived" class="block text-sm font-medium text-gray-700">วันที่ เวลารับแจ้งซ่อม</label>
+        <input type="text" id="dateTimeReceived" name="dateTimeReceived" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm sm:text-sm bg-gray-100" readonly />
+      </div>
 
-        async function fetchData() {
-            try {
-                errorDiv.classList.add('hidden'); 
-                const response = await fetch(SCRIPT_URL, { method: 'GET', redirect: 'follow' });
-                if (!response.ok) throw new Error(`Network response was not ok, status: ${response.status}`);
-                const parsedResponse = await response.json();
-                if (parsedResponse.error) throw new Error(parsedResponse.message);
-                if (!Array.isArray(parsedResponse)) throw new Error("รูปแบบข้อมูลที่ได้รับไม่ถูกต้อง (ไม่ใช่ Array)");
-                
-                repairData = parsedResponse;
-                populateDropdown();
-                
-                loadingDiv.classList.add('hidden');
-                repairForm.classList.remove('hidden');
-            } catch (error) {
-                console.error('Fetch error:', error);
-                loadingDiv.classList.add('hidden');
-                errorDiv.textContent = `เกิดข้อผิดพลาด: ${error.message}`;
-                errorDiv.classList.remove('hidden');
-            }
-        }
-        // Function to set default values on page load
-        function initializeForm() {
-            // --- UPDATED: Set Repair ID Display ---
-            const now = new Date(); // Gets local time (UTC+7 for the user)
-            const year = now.getFullYear();
-            const month = (now.getMonth() + 1).toString().padStart(2, '0');
-            // Set the display value for the user with 'XXX' as a placeholder
-            document.getElementById('repair_id').value = `MN-${year}${month}-XXX`;
+      <div>
+        <label for="handlerNameInput" class="block text-sm font-medium text-gray-700">ชื่อผู้รับแจ้งซ่อม</label>
+        <input type="text" id="handlerNameInput" name="handlerName" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm sm:text-sm" placeholder="กรอกชื่อผู้รับเรื่อง" required />
+      </div>
 
-            // --- Set Timestamp ---
-            const localDay = String(now.getDate()).padStart(2, '0');
-            const localMonth = String(now.getMonth() + 1).padStart(2, '0');
-            const localYear = now.getFullYear();
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            
-            const formattedTimestamp = `${localDay}/${localMonth}/${localYear} :: ${hours}:${minutes}:${seconds}`;
-            document.getElementById('request_time').value = formattedTimestamp;
-        }
-        function populateDropdown() {
-            const unassignedJobs = repairData.filter(record => !record.handlerName && record.repairId);
-            const sortedData = unassignedJobs.sort((a, b) => {
-                const idA = parseInt(String(a.repairId).replace(/\D/g, ''), 10) || 0;
-                const idB = parseInt(String(b.repairId).replace(/\D/g, ''), 10) || 0;
-                return idA - idB;
-            });
-            
-            repairIdSelect.innerHTML = '<option value="">-- กรุณาเลือกเลขที่แจ้งซ่อม --</option>';
-            if (sortedData.length === 0) {
-                repairIdSelect.innerHTML += '<option disabled>ไม่มีรายการแจ้งซ่อมที่ว่าง</option>';
-            }
-            sortedData.forEach(record => {
-                const option = document.createElement('option');
-                option.value = record.repairId;
-                option.textContent = record.repairId;
-                repairIdSelect.appendChild(option);
-            });
-        }
+      <div>
+        <label for="statusSelect" class="block text-sm font-medium text-gray-700">สถานะ</label>
+        <select id="statusSelect" name="status" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm sm:text-sm">
+          <option>แจ้งซ่อม</option>
+          <option selected>กำลังดำเนินงาน</option>
+        </select>
+      </div>
 
+      <button type="submit" id="submitButton" class="w-full py-2 px-4 rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300">
+        บันทึกข้อมูล
+      </button>
+    </form>
 
-        function showStatusMessage(message, isError = false) {
-            submitStatus.textContent = message;
-            submitStatus.style.color = isError ? '#ef4444' : '#10b981';
-            submitStatus.classList.remove('opacity-0');
-            setTimeout(() => {
-                submitStatus.classList.add('opacity-0');
-            }, 3000);
-        }
-        
-        async function handleFormSubmit(event) {
-            event.preventDefault();
-            if (!repairIdSelect.value || !handlerNameInput.value) {
-                showStatusMessage("กรุณาเลือกเลขที่แจ้งซ่อมและกรอกชื่อผู้รับเรื่อง", true);
-                return;
-            }
-            submitButton.disabled = true;
-            submitButton.textContent = 'กำลังบันทึก...';
-            const payload = {
-                repairId: repairIdSelect.value,
-                dateTimeReceived: dateTimeReceived.value,
-                handlerName: handlerNameInput.value,
-                status: statusSelect.value,
-                form_name: "รับเรื่องแจ้งซ่อม"
-            };
-            try {
-                const response = await fetch(N8N_WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                if (!response.ok) {
-                    throw new Error(`ไม่สามารถส่งข้อมูลได้, Status: ${response.status}`);
-                }
-                showStatusMessage("บันทึกข้อมูลสำเร็จ!", false);
-                repairForm.reset();
-                dateTimeReceivedInput.value = '';
-                await fetchData();
-            } catch (error) {
-                console.error("Webhook submission error:", error);
-                showStatusMessage(`เกิดข้อผิดพลาด: ${error.message}`, true);
-            } finally {
-                submitButton.disabled = false;
-                submitButton.textContent = 'บันทึกข้อมูล';
-            }
-        }
+    <div id="error" class="text-center text-red-500 font-semibold hidden"></div>
+    <div id="submitStatus" class="text-center font-medium status-message opacity-0"></div>
+  </div>
 
+  <script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwpOVZ_qNP9y2Rk5_Jl2xdsLjZVZ2QmEL9bThHLESaMjD9aXMMXvybpCf2qNcARnFQDUA/exec";
+    const N8N_WEBHOOK_URL = "https://856d-61-7-138-3.ngrok-free.app/webhook-test/PJF_MN";
 
-        document.addEventListener('DOMContentLoaded', fetchData);
-        repairForm.addEventListener('submit', handleFormSubmit);
-    </script>
+    const loadingDiv = document.getElementById('loading');
+    const errorDiv = document.getElementById('error');
+    const repairForm = document.getElementById('repairForm');
+    const repairIdSelect = document.getElementById('repairIdSelect');
+    const handlerNameInput = document.getElementById('handlerNameInput');
+    const statusSelect = document.getElementById('statusSelect');
+    const dateTimeReceivedInput = document.getElementById('dateTimeReceived');
+    const submitButton = document.getElementById('submitButton');
+    const submitStatus = document.getElementById('submitStatus');
+
+    let repairData = [];
+
+    async function fetchData() {
+      try {
+        errorDiv.classList.add('hidden');
+        const response = await fetch(SCRIPT_URL);
+        if (!response.ok) throw new Error(`Network error: ${response.status}`);
+        const parsedResponse = await response.json();
+        if (!Array.isArray(parsedResponse)) throw new Error("ข้อมูลที่ได้รับไม่ถูกต้อง");
+
+        repairData = parsedResponse;
+        populateDropdown();
+        loadingDiv.classList.add('hidden');
+        repairForm.classList.remove('hidden');
+      } catch (error) {
+        errorDiv.textContent = `เกิดข้อผิดพลาด: ${error.message}`;
+        errorDiv.classList.remove('hidden');
+        loadingDiv.classList.add('hidden');
+      }
+    }
+
+    function populateDropdown() {
+      const unassigned = repairData.filter(r => !r.handlerName && r.repairId);
+      const sorted = unassigned.sort((a, b) => {
+        const idA = parseInt(a.repairId.replace(/\D/g, '') || '0');
+        const idB = parseInt(b.repairId.replace(/\D/g, '') || '0');
+        return idA - idB;
+      });
+
+      repairIdSelect.innerHTML = '<option value="">-- กรุณาเลือกเลขที่แจ้งซ่อม --</option>';
+      if (sorted.length === 0) {
+        repairIdSelect.innerHTML += '<option disabled>ไม่มีรายการแจ้งซ่อมที่ว่าง</option>';
+      } else {
+        sorted.forEach(r => {
+          const option = document.createElement('option');
+          option.value = r.repairId;
+          option.textContent = r.repairId;
+          repairIdSelect.appendChild(option);
+        });
+      }
+    }
+
+    function showStatusMessage(message, isError = false) {
+      submitStatus.textContent = message;
+      submitStatus.style.color = isError ? '#ef4444' : '#10b981';
+      submitStatus.classList.remove('opacity-0');
+      setTimeout(() => {
+        submitStatus.classList.add('opacity-0');
+      }, 3000);
+    }
+
+    function formatDateTime() {
+      const now = new Date();
+      const d = String(now.getDate()).padStart(2, '0');
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const y = now.getFullYear();
+      const h = String(now.getHours()).padStart(2, '0');
+      const min = String(now.getMinutes()).padStart(2, '0');
+      const s = String(now.getSeconds()).padStart(2, '0');
+      return `${d}/${m}/${y} :: ${h}:${min}:${s}`;
+    }
+
+    repairIdSelect.addEventListener('change', () => {
+      if (repairIdSelect.value) {
+        dateTimeReceivedInput.value = formatDateTime();
+      } else {
+        dateTimeReceivedInput.value = '';
+      }
+    });
+
+    async function handleFormSubmit(event) {
+      event.preventDefault();
+
+      if (!repairIdSelect.value || !handlerNameInput.value) {
+        showStatusMessage("กรุณาเลือกเลขที่แจ้งซ่อมและกรอกชื่อผู้รับเรื่อง", true);
+        return;
+      }
+
+      submitButton.disabled = true;
+      submitButton.textContent = 'กำลังบันทึก...';
+
+      const payload = {
+        repairId: repairIdSelect.value,
+        dateTimeReceived: dateTimeReceivedInput.value,
+        handlerName: handlerNameInput.value,
+        status: statusSelect.value,
+        form_name: "รับเรื่องแจ้งซ่อม"
+      };
+
+      try {
+        const response = await fetch(N8N_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!response.ok) throw new Error(`ส่งข้อมูลไม่สำเร็จ: ${response.status}`);
+        showStatusMessage("บันทึกข้อมูลสำเร็จ!");
+        repairForm.reset();
+        dateTimeReceivedInput.value = '';
+        await fetchData();
+      } catch (error) {
+        showStatusMessage(`เกิดข้อผิดพลาด: ${error.message}`, true);
+      } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = 'บันทึกข้อมูล';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', fetchData);
+    repairForm.addEventListener('submit', handleFormSubmit);
+  </script>
 </body>
 </html>
