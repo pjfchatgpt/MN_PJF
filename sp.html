@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ฟอร์มแจ้งซ่อม</title>
+    <!-- โหลด Tailwind CSS เพื่อความสวยงาม -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- โหลดฟอนต์ภาษาไทย -->
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+    <div class="w-full max-w-lg p-8 space-y-6 bg-white rounded-xl shadow-lg">
+        <h1 class="text-2xl font-bold text-center text-gray-800">ตรวจสอบข้อมูลแจ้งซ่อม</h1>
+
+        <!-- Loading Indicator -->
+        <div id="loading" class="text-center text-gray-500">
+            <p>กำลังโหลดข้อมูลจาก Google Sheet...</p>
+        </div>
+
+        <!-- Form Content -->
+        <form id="repairForm" class="space-y-4 hidden">
+            <div>
+                <label for="repairIdSelect" class="block text-sm font-medium text-gray-700">เลขที่แจ้งซ่อม</label>
+                <select id="repairIdSelect" name="repairId" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <option value="">-- กรุณาเลือกเลขที่แจ้งซ่อม --</option>
+                </select>
+            </div>
+            <div>
+                <label for="requesterNameInput" class="block text-sm font-medium text-gray-700">ชื่อผู้แจ้ง</label>
+                <input type="text" id="requesterNameInput" name="requesterName" readonly class="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md shadow-sm sm:text-sm" placeholder="ชื่อผู้แจ้งจะแสดงที่นี่">
+            </div>
+        </form>
+         <div id="error" class="text-center text-red-500 font-semibold hidden"></div>
+    </div>
+
+    <script>
+        // ##################################################################
+        // ##  สำคัญ! นำ URL ของ Web App ที่ได้จาก Google Apps Script มาวางที่นี่  ##
+        // ##################################################################
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyn3vrsl-6s7QzXSy4UXQRHQr38UokNTgCz-FxfSEsXF28EW0mKKAvrda5gNEEWva5CrA/exec"; 
+        
+        // อ้างอิงถึง element ต่างๆ
+        const loadingDiv = document.getElementById('loading');
+        const errorDiv = document.getElementById('error');
+        const repairForm = document.getElementById('repairForm');
+        const repairIdSelect = document.getElementById('repairIdSelect');
+        const requesterNameInput = document.getElementById('requesterNameInput');
+
+        // ตัวแปรสำหรับเก็บข้อมูลทั้งหมด
+        let repairData = [];
+
+        // ฟังก์ชันสำหรับดึงข้อมูล
+        async function fetchData() {
+            if (SCRIPT_URL === "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE" || !SCRIPT_URL) {
+                loadingDiv.classList.add('hidden');
+                errorDiv.textContent = "เกิดข้อผิดพลาด: กรุณาใส่ URL ของ Google Apps Script ในโค้ดก่อน";
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                // Google Apps Script URL มักจะมีการ redirect ซึ่ง fetch() จะตามไปโดยอัตโนมัติ
+                // การเรียกข้อมูลโดยตรงอาจถูกบล็อกโดยนโยบาย CORS ของเบราว์เซอร์
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'GET',
+                    redirect: 'follow', // บอกให้ fetch ติดตามการ redirect
+                });
+
+                if (!response.ok) {
+                    // บล็อกนี้อาจไม่ทำงานหากเป็นข้อผิดพลาดของเครือข่าย (เช่น CORS)
+                    throw new Error(`Network response was not ok, status: ${response.status}`);
+                }
+                
+                // การดึงข้อมูลเป็น text ก่อนจะปลอดภัยกว่า เนื่องจากบางครั้ง content-type อาจไม่ตรง
+                const textResponse = await response.text();
+                repairData = JSON.parse(textResponse);
+                
+                // นำข้อมูลมาใส่ใน dropdown
+                populateDropdown();
+                
+                // ซ่อน loading และแสดงฟอร์ม
+                loadingDiv.classList.add('hidden');
+                repairForm.classList.remove('hidden');
+
+            } catch (error) {
+                console.error('Fetch error:', error);
+                loadingDiv.classList.add('hidden');
+                // ปรับปรุงข้อความแสดงข้อผิดพลาดให้เจาะจงมากขึ้น
+                if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+                     errorDiv.textContent = `เกิดข้อผิดพลาดในการเชื่อมต่อ: ไม่สามารถดึงข้อมูลจาก Google Script ได้ อาจเกิดจากปัญหาด้านความปลอดภัยของเบราว์เซอร์ (CORS) กรุณาตรวจสอบว่า Web App ได้ถูก Deploy และตั้งค่า 'Who has access' เป็น 'Anyone' อย่างถูกต้อง`;
+                } else {
+                     errorDiv.textContent = `เกิดข้อผิดพลาดในการดึงข้อมูล: ${error.message}.`;
+                }
+                errorDiv.classList.remove('hidden');
+            }
+        }
+
+        // ฟังก์ชันสำหรับเติมข้อมูลใน dropdown
+        function populateDropdown() {
+            // เรียงข้อมูลตาม repairId จากน้อยไปมากก่อน
+            const sortedData = repairData.sort((a, b) => {
+                // แปลงเป็นตัวเลขเพื่อการเปรียบเทียบที่ถูกต้อง
+                const idA = parseInt(String(a.repairId).replace(/\D/g, ''), 10) || 0;
+                const idB = parseInt(String(b.repairId).replace(/\D/g, ''), 10) || 0;
+                return idA - idB;
+            });
+
+            sortedData.forEach(record => {
+                if (record.repairId) { // ตรวจสอบว่ามีเลขที่แจ้งซ่อมหรือไม่
+                    const option = document.createElement('option');
+                    option.value = record.repairId;
+                    option.textContent = record.repairId;
+                    repairIdSelect.appendChild(option);
+                }
+            });
+        }
+
+        // Event listener เมื่อมีการเลือก dropdown
+        repairIdSelect.addEventListener('change', (event) => {
+            const selectedId = event.target.value;
+            if (selectedId) {
+                // ค้นหาข้อมูลที่ตรงกับ ID ที่เลือก
+                const selectedRecord = repairData.find(record => record.repairId === selectedId);
+                if (selectedRecord) {
+                    requesterNameInput.value = selectedRecord.requesterName;
+                }
+            } else {
+                // ถ้าไม่ได้เลือกอะไร ให้เคลียร์ช่องชื่อผู้แจ้ง
+                requesterNameInput.value = '';
+            }
+        });
+
+        // เริ่มดึงข้อมูลเมื่อหน้าเว็บโหลดเสร็จ
+        document.addEventListener('DOMContentLoaded', fetchData);
+    </script>
+</body>
+</html>
