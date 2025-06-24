@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ปิดงานแจ้งซ่อม</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Sarabun', sans-serif; }
+    .status-message { transition: opacity 0.5s ease-in-out; }
+  </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen py-8 px-4">
+  <div class="w-full max-w-lg p-8 bg-white rounded-xl shadow-lg space-y-6">
+    <h1 class="text-2xl sm:text-3xl font-bold text-center text-gray-800">ปิดงานแจ้งซ่อม</h1>
+    <div id="loading" class="text-center text-gray-500"><p>กำลังโหลดข้อมูล...</p></div>
+    
+    <form id="closeJobForm" class="space-y-4 hidden">
+      <div>
+        <label for="repairIdSelect" class="block text-sm font-medium text-gray-700">เลขที่แจ้งซ่อม (ที่ยังไม่ปิดงาน)</label>
+        <select id="repairIdSelect" name="repairId" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
+          <option value="">-- กรุณาเลือก --</option>
+        </select>
+      </div>
+      <!-- --- จุดที่แก้ไข: เพิ่มช่องผู้ส่งมอบงาน --- -->
+      <div>
+        <label for="handoverPersonInput" class="block text-sm font-medium text-gray-700">ผู้ส่งมอบงาน</label>
+        <input type="text" id="handoverPersonInput" name="handoverPerson" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" placeholder="กรอกชื่อผู้ส่งมอบงาน" required />
+      </div>
+      <div>
+        <label for="completionTimeInput" class="block text-sm font-medium text-gray-700">เวลาที่ซ่อมเสร็จ</label>
+        <input type="text" id="completionTimeInput" name="completionTime" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100 focus:ring-indigo-500 focus:border-indigo-500" placeholder="เวลาจะถูกสร้างอัตโนมัติ" readonly required />
+      </div>
+      <div>
+        <label for="inspectorInput" class="block text-sm font-medium text-gray-700">ผู้ตรวจรับมอบงาน</label>
+        <input type="text" id="inspectorInput" name="inspector" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" placeholder="กรอกชื่อผู้ตรวจรับ" required />
+      </div>
+       <div>
+        <label for="notesInput" class="block text-sm font-medium text-gray-700">หมายเหตุ</label>
+        <textarea id="notesInput" name="notes" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" placeholder="รายละเอียดเพิ่มเติม (ถ้ามี)"></textarea>
+      </div>
+      <button type="submit" id="submitButton" class="w-full py-2.5 px-4 rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 transition-colors">
+        บันทึกการปิดงาน
+      </button>
+    </form>
+    
+    <div id="error" class="text-center text-red-500 font-semibold hidden"></div>
+    <div id="submitStatus" class="text-center font-medium status-message opacity-0"></div>
+  </div>
+
+  <script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxc1t8SKPxdj4RxY-syakNHRN-Vja-BYqBytYXbrMRcbVZXBa52XMsT-NpBR4xXIjsPHA/exec";
+    const N8N_WEBHOOK_URL = "https://856d-61-7-138-3.ngrok-free.app/webhook/PJF_MN"; 
+    
+    const elements = {
+      loading: document.getElementById('loading'),
+      error: document.getElementById('error'),
+      form: document.getElementById('closeJobForm'),
+      repairIdSelect: document.getElementById('repairIdSelect'),
+      // --- จุดที่แก้ไข: เพิ่ม element ---
+      handoverPersonInput: document.getElementById('handoverPersonInput'),
+      completionTimeInput: document.getElementById('completionTimeInput'),
+      inspectorInput: document.getElementById('inspectorInput'),
+      notesInput: document.getElementById('notesInput'),
+      submitButton: document.getElementById('submitButton'),
+      submitStatus: document.getElementById('submitStatus')
+    };
+
+    let repairData = [];
+
+    function getCurrentFormattedDateTime() {
+      const now = new Date();
+      const d = String(now.getDate()).padStart(2, '0');
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const y = now.getFullYear();
+      const h = String(now.getHours()).padStart(2, '0');
+      const min = String(now.getMinutes()).padStart(2, '0');
+      const s = String(now.getSeconds()).padStart(2, '0');
+      return `${d}/${m}/${y} :: ${h}:${min}:${s}`;
+    }
+
+    async function fetchData() {
+      elements.loading.classList.remove('hidden');
+      elements.form.classList.add('hidden');
+      elements.error.classList.add('hidden');
+
+      try {
+        if (SCRIPT_URL === "YOUR_NEW_APPS_SCRIPT_URL_HERE") {
+          throw new Error("กรุณาใส่ Apps Script URL ก่อน");
+        }
+        const response = await fetch(SCRIPT_URL);
+        if (!response.ok) throw new Error(`Network Error: ${response.statusText}`);
+        const data = await response.json();
+        if (data.error) throw new Error(data.message);
+
+        repairData = data;
+        populateDropdown();
+        elements.form.classList.remove('hidden');
+        elements.completionTimeInput.value = getCurrentFormattedDateTime();
+      } catch (error) {
+        elements.error.textContent = `เกิดข้อผิดพลาด: ${error.message}`;
+        elements.error.classList.remove('hidden');
+      } finally {
+        elements.loading.classList.add('hidden');
+      }
+    }
+
+    function populateDropdown() {
+      const unassigned = repairData.filter(r => !r.handoverPerson && r.repairId);
+      const sorted = unassigned.sort((a, b) => (a.repairId || "").localeCompare(b.repairId || ""));
+      
+      elements.repairIdSelect.innerHTML = '<option value="">-- กรุณาเลือก --</option>';
+      if (sorted.length === 0) {
+        elements.repairIdSelect.innerHTML += '<option disabled>ไม่มีงานที่รอปิด</option>';
+      } else {
+        sorted.forEach(r => {
+          const option = document.createElement('option');
+          option.value = r.repairId;
+          option.textContent = r.repairId;
+          elements.repairIdSelect.appendChild(option);
+        });
+      }
+    }
+
+    function showStatusMessage(message, isError = false) {
+      elements.submitStatus.textContent = message;
+      elements.submitStatus.style.color = isError ? '#ef4444' : '#10b981';
+      elements.submitStatus.classList.remove('opacity-0');
+      setTimeout(() => elements.submitStatus.classList.add('opacity-0'), 3000);
+    }
+
+    elements.form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (N8N_WEBHOOK_URL === "YOUR_N8N_WEBHOOK_URL_HERE") {
+        showStatusMessage("กรุณาตั้งค่า Webhook URL ในโค้ดก่อน", true);
+        return;
+      }
+      
+      // --- จุดที่แก้ไข: เพิ่มการตรวจสอบช่องผู้ส่งมอบงาน ---
+      if (!elements.repairIdSelect.value || !elements.handoverPersonInput.value || !elements.inspectorInput.value) {
+          showStatusMessage("กรุณากรอกข้อมูลให้ครบทุกช่อง", true);
+          return;
+      }
+      
+      if (!elements.completionTimeInput.value) {
+        elements.completionTimeInput.value = getCurrentFormattedDateTime();
+      }
+
+      elements.submitButton.disabled = true;
+      elements.submitButton.textContent = 'กำลังบันทึก...';
+      
+      // --- จุดที่แก้ไข: เพิ่มค่าผู้ส่งมอบงานใน payload ---
+      const payload = {
+        repairId: elements.repairIdSelect.value,
+        handoverPerson: elements.handoverPersonInput.value,
+        completionTime: elements.completionTimeInput.value,
+        inspector: elements.inspectorInput.value,
+        notes: elements.notesInput.value,
+        status: "เสร็จแล้ว", 
+        form_name: "ปิดงานแจ้งซ่อม"
+      };
+
+      try {
+        const response = await fetch(N8N_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!response.ok) throw new Error(`Webhook Error: ${response.statusText}`);
+        
+        showStatusMessage("บันทึกการปิดงานสำเร็จ!");
+        elements.form.reset();
+        elements.completionTimeInput.value = getCurrentFormattedDateTime();
+        await fetchData();
+      } catch (error) {
+        showStatusMessage(`เกิดข้อผิดพลาด: ${error.message}`, true);
+      } finally {
+        elements.submitButton.disabled = false;
+        elements.submitButton.textContent = 'บันทึกการปิดงาน';
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', fetchData);
+  </script>
+</body>
+</html>
