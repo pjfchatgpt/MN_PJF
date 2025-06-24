@@ -1,76 +1,55 @@
+
 <!DOCTYPE html>
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>รับเรื่องแจ้งซ่อม</title>
-
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- ฟอนต์ Sarabun -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet" />
-
   <style>
-    body {
-      font-family: 'Sarabun', sans-serif;
-    }
-    .status-message {
-      transition: opacity 0.5s ease-in-out;
-    }
+    body { font-family: 'Sarabun', sans-serif; }
+    .status-message { transition: opacity 0.5s ease-in-out; }
   </style>
 </head>
-
-<body class="bg-gray-100 flex items-center justify-center min-h-screen py-12">
-
-  <div class="w-full max-w-lg p-8 space-y-6 bg-white rounded-xl shadow-lg">
-    <h1 class="text-2xl font-bold text-center text-gray-800">รับเรื่องแจ้งซ่อม</h1>
-
-    <div id="loading" class="text-center text-gray-500">
-      <p>กำลังโหลดข้อมูลจาก Google Sheet...</p>
-    </div>
-
+<body class="bg-gray-100 flex items-center justify-center min-h-screen py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
+  <div class="w-full max-w-lg p-6 sm:p-8 bg-white rounded-xl shadow-md sm:shadow-lg space-y-6">
+    <h1 class="text-2xl sm:text-3xl font-bold text-center text-gray-800">รับเรื่องแจ้งซ่อม</h1>
+    <div id="loading" class="text-center text-gray-500"><p>กำลังโหลดข้อมูลจาก Google Sheet...</p></div>
     <form id="repairForm" class="space-y-4 hidden">
       <div>
-        <label for="repairIdSelect" class="block text-sm font-medium text-gray-700">เลขที่แจ้งซ่อม (ที่ยังไม่มีผู้รับเรื่อง)</label>
-        <select id="repairIdSelect" name="repairId" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+        <label for="repairIdSelect" class="block text-base sm:text-sm font-medium text-gray-700">เลขที่แจ้งซ่อม</label>
+        <select id="repairIdSelect" name="repairId" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-sm" required>
           <option value="">-- กรุณาเลือกเลขที่แจ้งซ่อม --</option>
         </select>
       </div>
-
       <div>
-        <label for="dateTimeReceived" class="block text-sm font-medium text-gray-700">วันที่ เวลารับแจ้งซ่อม</label>
-        <input type="text" id="dateTimeReceived" name="dateTimeReceived" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm sm:text-sm bg-gray-100" readonly />
+        <label for="dateTimeReceived" class="block text-base sm:text-sm font-medium text-gray-700">วันที่ เวลารับแจ้งซ่อม</label>
+        <input type="text" id="dateTimeReceived" name="dateTimeReceived" class="mt-1 block w-full px-3 py-2 border rounded-md bg-gray-100 shadow-sm text-sm sm:text-sm" readonly />
       </div>
-
       <div>
-        <label for="handlerNameInput" class="block text-sm font-medium text-gray-700">ชื่อผู้รับแจ้งซ่อม</label>
-        <input type="text" id="handlerNameInput" name="handlerName" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm sm:text-sm" placeholder="กรอกชื่อผู้รับเรื่อง" required />
+        <label for="handlerNameInput" class="block text-base sm:text-sm font-medium text-gray-700">ชื่อผู้รับแจ้งซ่อม</label>
+        <input type="text" id="handlerNameInput" name="handlerName" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm text-sm sm:text-sm" placeholder="กรอกชื่อผู้รับเรื่อง" required />
       </div>
-
       <div>
-        <label for="statusSelect" class="block text-sm font-medium text-gray-700">สถานะ</label>
-        <select id="statusSelect" name="status" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm sm:text-sm">
+        <label for="statusSelect" class="block text-base sm:text-sm font-medium text-gray-700">สถานะ</label>
+        <select id="statusSelect" name="status" class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm text-sm sm:text-sm">
           <option>แจ้งซ่อม</option>
           <option selected>กำลังดำเนินงาน</option>
         </select>
       </div>
-
-      <button type="submit" id="submitButton" class="w-full py-2 px-4 rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300">
+      <button type="submit" id="submitButton" class="w-full py-2 px-4 rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 transition">
         บันทึกข้อมูล
       </button>
     </form>
-
-    <div id="error" class="text-center text-red-500 font-semibold hidden"></div>
-    <div id="submitStatus" class="text-center font-medium status-message opacity-0"></div>
+    <div id="error" class="text-center text-red-500 font-semibold hidden text-sm sm:text-base"></div>
+    <div id="submitStatus" class="text-center font-medium status-message opacity-0 text-sm sm:text-base"></div>
   </div>
-
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwpOVZ_qNP9y2Rk5_Jl2xdsLjZVZ2QmEL9bThHLESaMjD9aXMMXvybpCf2qNcARnFQDUA/exec";
     const N8N_WEBHOOK_URL = "https://856d-61-7-138-3.ngrok-free.app/webhook-test/PJF_MN";
-
     const loadingDiv = document.getElementById('loading');
     const errorDiv = document.getElementById('error');
     const repairForm = document.getElementById('repairForm');
@@ -81,7 +60,16 @@
     const submitButton = document.getElementById('submitButton');
     const submitStatus = document.getElementById('submitStatus');
 
-    let repairData = [];
+    function formatDateTime() {
+      const now = new Date();
+      const d = String(now.getDate()).padStart(2, '0');
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const y = now.getFullYear();
+      const h = String(now.getHours()).padStart(2, '0');
+      const min = String(now.getMinutes()).padStart(2, '0');
+      const s = String(now.getSeconds()).padStart(2, '0');
+      return `${d}/${m}/${y} :: ${h}:${min}:${s}`;
+    }
 
     async function fetchData() {
       try {
@@ -95,6 +83,7 @@
         populateDropdown();
         loadingDiv.classList.add('hidden');
         repairForm.classList.remove('hidden');
+        dateTimeReceivedInput.value = formatDateTime();  // Set datetime on load
       } catch (error) {
         errorDiv.textContent = `เกิดข้อผิดพลาด: ${error.message}`;
         errorDiv.classList.remove('hidden');
@@ -109,7 +98,6 @@
         const idB = parseInt(b.repairId.replace(/\D/g, '') || '0');
         return idA - idB;
       });
-
       repairIdSelect.innerHTML = '<option value="">-- กรุณาเลือกเลขที่แจ้งซ่อม --</option>';
       if (sorted.length === 0) {
         repairIdSelect.innerHTML += '<option disabled>ไม่มีรายการแจ้งซ่อมที่ว่าง</option>';
@@ -127,39 +115,17 @@
       submitStatus.textContent = message;
       submitStatus.style.color = isError ? '#ef4444' : '#10b981';
       submitStatus.classList.remove('opacity-0');
-      setTimeout(() => {
-        submitStatus.classList.add('opacity-0');
-      }, 3000);
+      setTimeout(() => { submitStatus.classList.add('opacity-0'); }, 3000);
     }
-
-    function formatDateTime() {
-      const now = new Date();
-      const d = String(now.getDate()).padStart(2, '0');
-      const m = String(now.getMonth() + 1).padStart(2, '0');
-      const y = now.getFullYear();
-      const h = String(now.getHours()).padStart(2, '0');
-      const min = String(now.getMinutes()).padStart(2, '0');
-      const s = String(now.getSeconds()).padStart(2, '0');
-      return `${d}/${m}/${y} :: ${h}:${min}:${s}`;
-    }
-
-    repairIdSelect.addEventListener('change', () => {
-      if (repairIdSelect.value) {
-        dateTimeReceivedInput.value = formatDateTime();
-      } else {
-        dateTimeReceivedInput.value = '';
-      }
-    });
 
     async function handleFormSubmit(event) {
       event.preventDefault();
-
       if (!repairIdSelect.value || !handlerNameInput.value) {
         showStatusMessage("กรุณาเลือกเลขที่แจ้งซ่อมและกรอกชื่อผู้รับเรื่อง", true);
         return;
       }
       if (!dateTimeReceivedInput.value) {
-        dateTimeReceivedInput.value = formatDateTime(); // ✅ ป้องกันค่าหาย
+        dateTimeReceivedInput.value = formatDateTime();
       }
       submitButton.disabled = true;
       submitButton.textContent = 'กำลังบันทึก...';
@@ -181,7 +147,7 @@
         if (!response.ok) throw new Error(`ส่งข้อมูลไม่สำเร็จ: ${response.status}`);
         showStatusMessage("บันทึกข้อมูลสำเร็จ!");
         repairForm.reset();
-        dateTimeReceivedInput.value = '';
+        dateTimeReceivedInput.value = formatDateTime();
         await fetchData();
       } catch (error) {
         showStatusMessage(`เกิดข้อผิดพลาด: ${error.message}`, true);
