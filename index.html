@@ -77,7 +77,7 @@
             <div class="relative">
                 <label for="machine_id_input" class="block text-sm font-medium text-gray-700 mb-1">รหัสเครื่องจักร / ชื่อเครื่องจักร</label>
                 <input id="machine_id_input" type="text" name="machine_id" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="พิมพ์เพื่อค้นหาหรือกรอกข้อมูล..." required>
-                <div id="autocomplete-list" class="autocomplete-items"></div>
+                <div id="autocomplete-list-machine" class="autocomplete-items"></div>
             </div>
 
             <!-- Row 3: Details -->
@@ -98,23 +98,15 @@
                 </div>
             </div>
             
-             <!-- Row 5: Department and hidden Status -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label for="department" class="block text-sm font-medium text-gray-700 mb-1">แผนก</label>
-                    <select id="department" name="department" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required>
-                         <option value="">-- เลือกแผนก --</option>
-                        <option value="ฝ่ายผลิต">ฝ่ายผลิต</option>
-                        <option value="ซ่อมบำรุง">ซ่อมบำรุง</option>
-                        <option value="คลังสินค้า">คลังสินค้า</option>
-                        <option value="บุคคล">บุคคล</option>
-                        <option value="สำนักงาน">สำนักงาน</option>
-                        <option value="อื่นๆ">อื่นๆ</option>
-                    </select>
-                </div>
-                 <!-- Hidden Status Field -->
-                 <input type="hidden" id="status" name="status" value="แจ้งซ่อม">
+             <!-- Row 5: Department (Autocomplete) -->
+            <div class="relative">
+                <label for="department_input" class="block text-sm font-medium text-gray-700 mb-1">แผนก</label>
+                <input id="department_input" type="text" name="department" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="พิมพ์เพื่อค้นหาแผนก..." required>
+                <div id="autocomplete-list-department" class="autocomplete-items"></div>
             </div>
+            
+            <!-- Hidden Status Field -->
+            <input type="hidden" id="status" name="status" value="แจ้งซ่อม">
 
             <!-- Submit Button -->
             <div class="pt-4">
@@ -210,6 +202,14 @@
             "อุปกรณ์ทั่วไป เครื่องมือ และอะไหล่สำรองต่างๆ"
         ];
 
+        const departmentList = [
+            "แผนกฝ่ายผลิต / PD", "แผนก LAB", "แผนกทะเบียน", "แผนกคลังวัตถุดิบ",
+            "แผนกคลังสินค้า", "แผนกขนส่ง", "แผนกบัญชี", "แผนกพัฒนาระบบคุณภาพ",
+            "แผนกซ่อมบำรุง", "แผนกQC", "แผนกการเงิน", "แผนกฝ่ายทรัพยากรบุคคล",
+            "แผนกฝ่าย IT", "แผนกจัดซื้อ", "แผนกการตลาด", "แผนกการขาย",
+            "แผนกวิจัยและผลิตภัณฑ์", "แผนกโครงการ", "ความปลอดภัยและสิ่งแวดล้อม"
+        ];
+
         // Function to set default values on page load
         function initializeForm() {
             // --- UPDATED: Set Repair ID Display ---
@@ -261,12 +261,12 @@
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
 
-            // --- UPDATED: Correct the repair_id value before sending ---
+            // --- Correct the repair_id value and add form name before sending ---
             const now = new Date();
             const year = now.getFullYear();
             const month = (now.getMonth() + 1).toString().padStart(2, '0');
             data.repair_id = `MN-${year}${month}`;
-            // --- END UPDATE ---
+            data.form_name = 'ฟอร์มแจ้งซ่อม PJF'; // Add form name here
 
             fetch(webhookUrl, {
                 method: 'POST',
@@ -346,6 +346,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             initializeForm();
             setupAutocomplete(document.getElementById("machine_id_input"), machineList);
+            setupAutocomplete(document.getElementById("department_input"), departmentList);
         });
 
     </script>
