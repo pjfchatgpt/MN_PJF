@@ -64,6 +64,11 @@
                     <select id="category" name="category" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required>
                         <option value="">-- เลือกหมวดหมู่ --</option>
                         <option value="ซ่อมแซมระหว่างเครื่องจักรหยุดขณะทำงาน (BK)">ซ่อมแซมระหว่างเครื่องจักรหยุดขณะทำงาน (BK)</option>
+                        <option value="การวางแผนซ่อมบำรุงเชิงป้องกัน (PM)">การวางแผนซ่อมบำรุงเชิงป้องกัน (PM)</option>
+                        <option value="งานปรับแต่งเครื่องจักร (MAJ)">งานปรับแต่งเครื่องจักร (MAJ)</option>
+                        <option value="งานความปลอดภัยและสิ่งแวดล้อม (SE)">งานความปลอดภัยและสิ่งแวดล้อม (SE)</option>
+                        <option value="งานโครงการ (PJ)">งานโครงการ (PJ)</option>
+                        <option value="ระบบลม">ระบบลม</option>
                         <option value="ไฟฟ้า">ไฟฟ้า</option>
                         <option value="ประปา">ประปา</option>
                         <option value="อาคารสถานที่">อาคารสถานที่</option>
@@ -199,7 +204,7 @@
             "H-018-รถแฮนลิฟท์", "H-001-รถแฮนลิฟท์", "T-001-รถยกน้ำมัน", "T-002-รถยกน้ำมัน", "T-003-รถยกน้ำมัน",
             "T-004-รถยกน้ำมัน", "T-005-รถยกน้ำมัน", "T-006-รถยกน้ำมัน", "T-007-รถยกน้ำมัน", "T-008-รถยกน้ำมัน",
             "M-P-0202-เครื่องตอกฝา", "M-S-0445-ลูกตุ้มสแตนเลส", "M-B-0305-หม้อต้มยาน้ำ  ( ใหม่ )", "PROJECT", "อื่นๆ",
-            "อุปกรณ์ทั่วไป เครื่องมือ และอะไหล่สำรองต่างๆ"
+            "อุปกรณ์ทั่วไป เครื่องมือ และอะไหล่สำรองต่างๆ", "M-R-0801 ถังกรองน้ำRO", "M-R-0802 ถังกรองน้ำRO", "M-R-0803 ถังกรองน้ำRO"
         ];
 
         const departmentList = [
@@ -306,12 +311,12 @@
             
             inp.addEventListener("input", function(e) {
                 let a, b, i, val = this.value;
-                closeAllLists();
+                closeAllLists(e.target);
                 if (!val) { return false; }
                 currentFocus = -1;
                 
                 a = document.createElement("DIV");
-                a.setAttribute("id", this.id + "autocomplete-list");
+                a.setAttribute("id", this.id + "-autocomplete-list");
                 a.setAttribute("class", "autocomplete-items");
                 this.parentNode.appendChild(a);
 
