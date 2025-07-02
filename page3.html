@@ -14,7 +14,7 @@
   </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen py-8 px-4">
-  <!-- Navigation Menu (Dropdown) -->
+  <!-- =================== 1. HTML ของเมนู (คัดลอกส่วนนี้) =================== -->
     <div class="absolute top-4 left-4 z-20">
         <div class="relative inline-block text-left">
             <div>
@@ -27,13 +27,19 @@
             </div>
             <div id="dropdown-menu" class="hidden absolute left-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
                 <div class="py-1" role="none">
-                    <a href="index.html" class="block px-4 py-2 text-sm font-bold bg-indigo-50 text-indigo-700" role="menuitem" tabindex="-1" id="menu-item-0">แจ้งซ่อม</a>
-                    <a href="page2.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-1">รับเรื่องแจ้งซ่อม</a>
+                    <!-- 
+                        คำแนะนำ: 
+                        - ย้าย class 'font-bold bg-indigo-50 text-indigo-700' ไปใส่ใน <a> tag ของหน้าที่คุณกำลังแก้ไข
+                        - ตัวอย่างด้านล่างคือสำหรับ page2.html
+                    -->
+                    <a href="index.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-0">แจ้งซ่อม</a>
+                    <a href="page2.html" class="block px-4 py-2 text-sm font-bold bg-indigo-50 text-indigo-700" role="menuitem" tabindex="-1" id="menu-item-1">รับเรื่องแจ้งซ่อม</a>
                     <a href="page3.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-2">ปิดงานแจ้งซ่อม</a>
                 </div>
             </div>
         </div>
     </div>
+    <!-- =================== จบส่วน HTML ของเมนู =================== -->
   <div class="w-full max-w-lg p-8 bg-white rounded-xl shadow-lg space-y-6">
     <h1 class="text-2xl sm:text-3xl font-bold text-center text-gray-800">ปิดงานแจ้งซ่อม</h1>
     <div id="loading" class="text-center text-gray-500"><p>กำลังโหลดข้อมูล...</p></div>
@@ -205,5 +211,25 @@
 
     document.addEventListener('DOMContentLoaded', fetchData);
   </script>
+      <!-- =================== 2. JavaScript ของเมนู (คัดลอกส่วนนี้) =================== -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Dropdown Menu Logic ---
+            const menuButton = document.getElementById('menu-button');
+            const dropdownMenu = document.getElementById('dropdown-menu');
+
+            menuButton.addEventListener('click', () => {
+                dropdownMenu.classList.toggle('hidden');
+            });
+
+            // Close dropdown if clicked outside
+            window.addEventListener('click', function(e) {
+                if (!menuButton.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                    dropdownMenu.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+    <!-- =================== จบส่วน JavaScript ของเมนู =================== -->
 </body>
 </html>
